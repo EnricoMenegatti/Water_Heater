@@ -18,28 +18,29 @@ Adafruit_SSD1306 display(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, -1);
 #define encoderCLK D6
 #define encoderDT D7
 #define encoderSW D8
+
+#define heaterRele D5
  
-double thisTime, lastTime;
+volatile int lastEncoded = 0;
+volatile long encoderValue = 0;
+
+bool EncoderSW_Pressed, ledBuiltin_state;
 float temperatureC, setpointC;
+unsigned long prev_millis, curr_millis;
 
 void setup() 
 {
   Serial.begin(115200);
   Serial.println("Setup...");
-  pinMode (encoderCLK,INPUT);
-  pinMode (encoderDT,INPUT);
-  pinMode (encoderSW, INPUT);
+  
+  pinMode(LED_BUILTIN, OUTPUT);
+  pinMode(heaterRele, OUTPUT);
 
-  if(display.begin(SSD1306_SWITCHCAPVCC, SCREEN_ADDRESS))
-  {
-    Serial.println("Display setup OK");
-  }  
-  delay(2000); // Pause for 2 seconds
+  Encoder_Setup();
+  OLED_Setup();
 
-  display.clearDisplay();          // Normal 1:1 pixel scale
-  display.setTextColor(WHITE);        // Draw white text
-
-  setpointC = 38;
+  Serial.println("Setup OK!");
+  prev_millis = millis();
 }
  
 void loop() 
@@ -49,32 +50,26 @@ void loop()
   Serial.print(temperatureC);
   Serial.println("ºC");
 
-  display.clearDisplay();
-  display.setTextSize(1);
-  display.setCursor(0,0);
-  display.print("Temperature: ");
-  display.setTextSize(2);
-  display.setCursor(0,10);
-  display.print(temperatureC);
-  display.print(" ");
-  display.setTextSize(1);
-  display.cp437(true);
-  display.write(167);
-  display.setTextSize(2);
-  display.print("C");
+  setpointC = 38 + (encoderValue / 10);
+  if(temperatureC <= setpointC - 0,5)
+  {
+    digitalWrite(heaterRele, HIGH);
+    digitalWrite(LED_BUILTIN, HIGH);
+  }
 
-  display.setTextSize(1);
-  display.setCursor(0, 35);
-  display.print("Setpoint: ");
-  display.setTextSize(2);
-  display.setCursor(0, 45);
-  display.print(setpointC);
-  display.print(" ");
-  display.setTextSize(1);
-  display.cp437(true);
-  display.write(167);
-  display.setTextSize(2);
-  display.print("C");
+  if(temperatureC >= setpointC + 0,5)
+  {
+    digitalWrite(heaterRele, LOW);
+    digitalWrite(LED_BUILTIN, LOW);
+  }
 
-  display.display();
+  OLED_Print();
+
+  curr_millis = millis();
+  if(curr_millis - prev_millis >= 2000) 
+  {
+    prev_millis = curr_millis;
+    ledBuiltin_state != ledBuiltin_state;
+    digitalWrite(LED_BUILTIN, ledBuiltin_state);
+  }
 }
