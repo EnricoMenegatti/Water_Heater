@@ -24,7 +24,7 @@ Adafruit_SSD1306 display(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, -1);
 volatile int lastEncoded = 0;
 volatile long encoderValue = 0;
 
-bool EncoderSW_Pressed, ledBuiltin_state;
+bool EncoderSW_Pressed, encoderSW_state;
 float temperatureC, setpointC;
 unsigned long prev_millis, curr_millis;
 
@@ -47,8 +47,9 @@ void loop()
 {
   sensors.requestTemperatures(); 
   temperatureC = sensors.getTempCByIndex(0);
-  Serial.print(temperatureC);
-  Serial.println("ºC");
+  //Serial.print(temperatureC);
+  //Serial.println("ºC");
+  sensors.
 
   setpointC = 38 + (encoderValue / 10);
   if(temperatureC <= setpointC - 0,5)
@@ -64,12 +65,4 @@ void loop()
   }
 
   OLED_Print();
-
-  curr_millis = millis();
-  if(curr_millis - prev_millis >= 2000) 
-  {
-    prev_millis = curr_millis;
-    ledBuiltin_state != ledBuiltin_state;
-    digitalWrite(LED_BUILTIN, ledBuiltin_state);
-  }
 }

@@ -28,6 +28,29 @@ void OLED_Print()
   display.setCursor(0, 35);
   display.print("Setpoint: ");
   display.setTextSize(2);
+
+  if(EncoderSW_Pressed)
+  {
+    curr_millis = millis();
+    if(curr_millis - prev_millis >= 500) 
+    {
+      prev_millis = curr_millis;
+      encoderSW_state != encoderSW_state;
+      if(encoderSW_state)
+      {      
+        display.setTextColor(WHITE);
+      }
+      else
+      {      
+        display.setTextColor(BLACK, WHITE);
+      }
+    }
+  }
+  else
+  {
+    display.setTextColor(WHITE);
+  }
+
   display.setCursor(0, 45);
   display.print(setpointC);
   display.print(" ");
