@@ -6,7 +6,7 @@
 #include <Adafruit_GFX.h>
 #include <Adafruit_SSD1306.h>
 
-#define ONE_WIRE_BUS D4
+#define ONE_WIRE_BUS D3
 OneWire oneWire(ONE_WIRE_BUS);
 DallasTemperature sensors(&oneWire);
 
@@ -24,9 +24,9 @@ Adafruit_SSD1306 display(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, -1);
 volatile int lastEncoded = 0;
 volatile long encoderValue = 0;
 
-bool EncoderSW_Pressed, encoderSW_state;
+bool EncoderSW_Pressed, encoderSW_state, encoderSW_detached, led_state;
 float temperatureC, setpointC;
-unsigned long prev_millis, curr_millis;
+unsigned long prev_millis, prev_millis_led, prev_millis_encoderSWinterrupt, curr_millis;
 
 void setup() 
 {
@@ -41,28 +41,53 @@ void setup()
 
   Serial.println("Setup OK!");
   prev_millis = millis();
+  prev_millis_encoderSWinterrupt = millis();
+  prev_millis_led = millis();
 }
  
 void loop() 
 {
+  curr_millis = millis();
+
   sensors.requestTemperatures(); 
   temperatureC = sensors.getTempCByIndex(0);
   //Serial.print(temperatureC);
   //Serial.println("ºC");
-  sensors.
 
-  setpointC = 38 + (encoderValue / 10);
-  if(temperatureC <= setpointC - 0,5)
+  setpointC = 38.0 + (encoderValue / 10.0);
+  if(temperatureC <= setpointC - 0.5)
   {
     digitalWrite(heaterRele, HIGH);
-    digitalWrite(LED_BUILTIN, HIGH);
   }
 
-  if(temperatureC >= setpointC + 0,5)
+  if(temperatureC >= setpointC + 0.5)
   {
     digitalWrite(heaterRele, LOW);
-    digitalWrite(LED_BUILTIN, LOW);
   }
 
   OLED_Print();
+
+  if(encoderSW_detached)
+  {
+    if(curr_millis - prev_millis_encoderSWinterrupt >= 500) 
+    {
+      prev_millis_encoderSWinterrupt = curr_millis;
+      encoderSW_detached = false;
+      attachInterrupt(digitalPinToInterrupt(encoderSW), Encoder_SW_Interrupt, RISING);
+    }
+  }
+
+  if(curr_millis - prev_millis_led >= 1000) 
+  {
+    if(led_state)
+    {
+      digitalWrite(LED_BUILTIN, HIGH);
+    }
+    else 
+    {
+      digitalWrite(LED_BUILTIN, LOW);
+    }
+    prev_millis_led = curr_millis;
+    led_state = !led_state;
+  }
 }
